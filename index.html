@@ -3,105 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的个人作品集网站</title>
-    <!-- 引入强大的 Tailwind CSS 用于实现现代感排版 -->
+    <title>我的可交互作品集</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 1. 引入 GSAP 动画库和 Vanilla-Tilt 3D 倾斜库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+
     <style>
         html { scroll-behavior: smooth; }
-        .bento-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .bento-card:hover { transform: translateY(-4px); }
+        /* 自定义光标样式：让它有种霓虹流光感 */
+        .custom-cursor {
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(45,212,191,0.8) 0%, rgba(45,212,191,0) 70%);
+            border: 2px solid #2dd4bf;
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none; /* 确保不挡住鼠标点击 */
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+        }
     </style>
 </head>
-<body class="bg-[#0b0f19] text-slate-200 font-sans selection:bg-teal-500 selection:text-slate-900">
+<body class="bg-[#0b0f19] text-slate-200 font-sans overflow-x-hidden">
 
-    <!-- 顶部高级导航栏 -->
+    <!-- 2. 交互元素：自定义跟随鼠标的流光圆圈 -->
+    <div class="custom-cursor" id="cursor"></div>
+
     <nav class="sticky top-0 z-50 backdrop-blur-md bg-[#0b0f19]/70 border-b border-slate-800/80 px-6 py-4 flex justify-between items-center">
-        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">CREATIVE.PORTFOLIO</span>
-        <div class="space-x-6 text-sm font-medium text-slate-400">
-            <a href="#about" class="hover:text-teal-400 transition-colors">关于我</a>
-            <a href="#work" class="hover:text-teal-400 transition-colors">作品集</a>
-            <a href="#contact" class="hover:text-teal-400 transition-colors">联系方式</a>
-        </div>
+        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">INTERACTIVE.DEV</span>
     </nav>
 
-    <!-- 首屏 Hero 区域 -->
-    <header id="about" class="max-w-6xl mx-auto px-6 pt-24 pb-16 text-center lg:text-left lg:flex lg:items-center lg:justify-between gap-12">
-        <div class="lg:w-2/3 space-y-6">
-            <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight text-white leading-tight">
-                用逻辑代码与<span class="bg-gradient-to-r from-teal-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">数字艺术</span>重构世界。
-            </h1>
-            <p class="text-lg text-slate-400 max-w-2xl">
-                你好！我是一名跨领域的创作者。我擅长将复杂的游戏/软件后台逻辑与高端的视觉美学相结合，打造极具沉浸感的数字化项目。
-            </p>
-            <div class="pt-4">
-                <a href="#work" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold px-6 py-3 rounded-lg shadow-lg shadow-teal-500/20 transition-all inline-block">浏览我的作品</a>
-            </div>
-        </div>
-        <!-- 侧边视觉氛围方块 -->
-        <div class="mt-12 lg:mt-0 lg:w-1/3 flex justify-center">
-            <div class="w-64 h-64 bg-gradient-to-tr from-teal-500 to-emerald-500 rounded-2xl rotate-3 shadow-2xl opacity-80 blur-sm absolute"></div>
-            <div class="w-64 h-64 bg-slate-800 border border-slate-700/50 rounded-2xl rotate-6 shadow-2xl flex items-center justify-center text-slate-500 font-mono text-sm relative z-10">
-                [ 艺术资产占位符 ]
-            </div>
-        </div>
-    </header>
+    <main class="max-w-4xl mx-auto px-6 py-24 text-center space-y-12">
+        <h1 class="text-4xl md:text-6xl font-extrabold text-white">
+            动效完全由 <span class="text-teal-400">GPU 硬件加速</span> 驱动
+        </h1>
+        <p class="text-slate-400 max-w-xl mx-auto">
+            把你的鼠标移到下方的卡片上晃动一下，体验 3D 倾斜反馈。同时注意看你的鼠标指针。
+        </p>
 
-    <!-- 核心作品：高端便当盒布局 (Bento Grid) -->
-    <main id="work" class="max-w-6xl mx-auto px-6 py-16 border-t border-slate-900">
-        <h2 class="text-3xl font-bold text-white mb-8 tracking-tight">精选项目展示</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- 核心大卡片 -->
-            <div class="bento-card md:col-span-2 bg-slate-900/40 border border-slate-800/60 rounded-2xl p-8 flex flex-col justify-between h-80 relative overflow-hidden group">
-                <div class="space-y-2 relative z-10">
-                    <span class="text-xs font-bold tracking-widest text-teal-400 uppercase">核心主推项目</span>
-                    <h3 class="text-2xl font-bold text-white">Turn-Based 战术战棋 AI 决策系统</h3>
-                    <p class="text-sm text-slate-400 max-w-md">基于效用评分（Utility-Scoring）逻辑的高流畅度 AI 决策引擎。完美平衡性能负载与算法深度，运行绝对丝滑。</p>
-                </div>
-                <div class="text-sm font-semibold text-white group-hover:text-teal-400 flex items-center gap-1 transition-colors relative z-10">
-                    探索开发复盘 <span class="transform group-hover:translate-x-1 transition-transform">→</span>
-                </div>
-                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-teal-500/5 rounded-full blur-2xl"></div>
-            </div>
-
-            <!-- 右侧小方卡 1 -->
-            <div class="bento-card bg-slate-900/40 border border-slate-800/60 rounded-2xl p-8 flex flex-col justify-between h-80 group">
-                <div class="space-y-2">
-                    <span class="text-xs font-bold tracking-widest text-emerald-400 uppercase">3D 空间设计</span>
-                    <h3 class="text-xl font-bold text-white">VR 空间交互交互原型</h3>
-                    <p class="text-sm text-slate-400">针对现代 VR 硬件严苛的帧率限制进行深度优化，打造完全顺畅、不晕眩的空间位移交互体系。</p>
-                </div>
-                <div class="text-sm font-semibold text-white group-hover:text-emerald-400 transition-colors">查看 Case Study →</div>
-            </div>
-
-            <!-- 左下小方卡 2 -->
-            <div class="bento-card bg-slate-900/40 border border-slate-800/60 rounded-2xl p-8 flex flex-col justify-between h-80 group">
-                <div class="space-y-2">
-                    <span class="text-xs font-bold tracking-widest text-cyan-400 uppercase">叙事插画</span>
-                    <h3 class="text-xl font-bold text-white">高对比度商业概念美术</h3>
-                    <p class="text-sm text-slate-400">将 Painterly 的厚涂笔触与极具张力的黑白叙事线条相结合，打造具有独特故事感的视觉氛围。</p>
-                </div>
-                <div class="text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors">浏览线上画廊 →</div>
-            </div>
-
-            <!-- 右下中型长卡片 -->
-            <div class="bento-card md:col-span-2 bg-slate-900/40 border border-slate-800/60 rounded-2xl p-8 flex flex-col justify-between h-80 group">
-                <div class="space-y-2">
-                    <span class="text-xs font-bold tracking-widest text-purple-400 uppercase">独立商业品牌</span>
-                    <h3 class="text-2xl font-bold text-white">可持续独立品牌电商视觉方案</h3>
-                    <p class="text-sm text-slate-400">针对垂直艺术单品、传统草本美学进行全套品牌视觉包装与数字营销平台交互对接。</p>
-                </div>
-                <div class="text-sm font-semibold text-white group-hover:text-purple-400 transition-colors">进入品牌页面 →</div>
-            </div>
+        <!-- 3. 交互元素：带 3D 倾斜的便当盒卡片 -->
+        <!-- 注意看这里的 data-tilt 和 data-tilt-max -->
+        <div data-tilt data-tilt-max="15" data-tilt-glare data-tilt-max-glare="0.3" 
+             class="bg-slate-900/50 border border-slate-800 p-12 rounded-3xl h-64 flex flex-col justify-center items-center cursor-pointer shadow-2xl transition-shadow hover:shadow-teal-500/5">
+            <h3 class="text-2xl font-bold text-white mb-2">💻 3D 交互卡片</h3>
+            <p class="text-sm text-teal-400 font-mono">Vanilla-Tilt.js 驱动</p>
         </div>
     </main>
 
-    <!-- 页脚与联系区域 -->
-    <footer id="contact" class="max-w-6xl mx-auto px-6 py-16 border-t border-slate-900/60 text-center text-sm text-slate-500">
-        <p class="mb-4 text-slate-400">对我的项目感兴趣，或想参与下一次测试阶段？</p>
-        <p class="font-medium text-white text-base">hello@yourdomain.com</p>
-        <p class="mt-12 text-xs">© 2026 Creative Portfolio. 托管服务由 GitHub & Vercel 免费提供。</p>
-    </footer>
+    <!-- 4. 编写交互逻辑的 JS 代码 -->
+    <script>
+        // 【交互一：丝滑的鼠标跟随动画】
+        const cursor = document.getElementById('cursor');
+        
+        // 监听整个网页的鼠标移动事件
+        window.addEventListener('mousemove', (e) => {
+            // 使用 GSAP 让光标平滑地“追赶”鼠标，制造出一种带有物理惯性的丝滑感，完全不卡
+            gsap.to(cursor, {
+                x: e.clientX,
+                y: e.clientY,
+                duration: 0.3, // 延迟追随的时间，数字越大拖尾越长
+                ease: "power2.out"
+            });
+        });
 
+        // 【交互二：鼠标点下去时的反馈】
+        window.addEventListener('mousedown', () => {
+            gsap.to(cursor, { scale: 1.5, backgroundColor: "rgba(45,212,191,0.4)", duration: 0.1 });
+        });
+        window.addEventListener('mouseup', () => {
+            gsap.to(cursor, { scale: 1, backgroundColor: "transparent", duration: 0.2 });
+        });
+    </script>
 </body>
 </html>
