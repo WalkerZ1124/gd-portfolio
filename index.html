@@ -3,78 +3,479 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的可交互作品集</title>
+    <title>Portfolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 1. 引入 GSAP 动画库和 Vanilla-Tilt 3D 倾斜库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
-
     <style>
-        html { scroll-behavior: smooth; }
-        /* 自定义光标样式：让它有种霓虹流光感 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * { font-family: 'Inter', sans-serif; }
+
         .custom-cursor {
-            width: 20px;
-            height: 20px;
-            background: radial-gradient(circle, rgba(45,212,191,0.8) 0%, rgba(45,212,191,0) 70%);
-            border: 2px solid #2dd4bf;
+            width: 16px;
+            height: 16px;
+            background: rgba(45,212,191,0.6);
+            border: 1.5px solid #2dd4bf;
             position: fixed;
             border-radius: 50%;
-            pointer-events: none; /* 确保不挡住鼠标点击 */
+            pointer-events: none;
             z-index: 9999;
             transform: translate(-50%, -50%);
             mix-blend-mode: screen;
+            transition: width 0.2s, height 0.2s;
+        }
+
+        .page {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            min-height: 100vh;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .page.active {
+            opacity: 1;
+            pointer-events: all;
+            position: relative;
+        }
+
+        .category-card {
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            border-radius: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .category-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 1.5rem;
+        }
+        .category-card:hover::before { opacity: 1; }
+        .category-card:hover { transform: translateY(-6px); }
+
+        .card-game::before { background: radial-gradient(ellipse at top, rgba(139,92,246,0.15) 0%, transparent 70%); }
+        .card-game { border: 1px solid rgba(139,92,246,0.3); box-shadow: 0 0 0 rgba(139,92,246,0); }
+        .card-game:hover { box-shadow: 0 20px 60px rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.6); }
+
+        .card-code::before { background: radial-gradient(ellipse at top, rgba(45,212,191,0.15) 0%, transparent 70%); }
+        .card-code { border: 1px solid rgba(45,212,191,0.3); }
+        .card-code:hover { box-shadow: 0 20px 60px rgba(45,212,191,0.12); border-color: rgba(45,212,191,0.6); }
+
+        .card-other::before { background: radial-gradient(ellipse at top, rgba(251,146,60,0.15) 0%, transparent 70%); }
+        .card-other { border: 1px solid rgba(251,146,60,0.3); }
+        .card-other:hover { box-shadow: 0 20px 60px rgba(251,146,60,0.12); border-color: rgba(251,146,60,0.6); }
+
+        .project-card {
+            background: rgba(15,20,35,0.8);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            cursor: pointer;
+        }
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+
+        .noise {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            position: fixed; inset: 0; pointer-events: none; z-index: 1;
+        }
+
+        .gradient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .back-btn:hover {
+            border-color: rgba(255,255,255,0.2);
+            color: white;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .img-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
         }
     </style>
 </head>
-<body class="bg-[#0b0f19] text-slate-200 font-sans overflow-x-hidden">
+<body class="bg-[#080c14] text-slate-200 overflow-x-hidden min-h-screen">
 
-    <!-- 2. 交互元素：自定义跟随鼠标的流光圆圈 -->
+    <div class="noise"></div>
+    <div class="gradient-orb w-[500px] h-[500px] bg-violet-900/20 top-[-100px] left-[-100px]"></div>
+    <div class="gradient-orb w-[400px] h-[400px] bg-teal-900/15 bottom-[-50px] right-[-50px]"></div>
+
     <div class="custom-cursor" id="cursor"></div>
 
-    <nav class="sticky top-0 z-50 backdrop-blur-md bg-[#0b0f19]/70 border-b border-slate-800/80 px-6 py-4 flex justify-between items-center">
-        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">INTERACTIVE.DEV</span>
+    <!-- NAV -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center backdrop-blur-xl bg-[#080c14]/60 border-b border-white/5">
+        <button onclick="goHome()" class="text-base font-bold tracking-tight bg-gradient-to-r from-teal-400 to-violet-400 bg-clip-text text-transparent hover:opacity-80 transition-opacity">
+            WALKER.DEV
+        </button>
+        <div id="nav-breadcrumb" class="text-sm text-slate-500 hidden">
+            <span class="text-slate-600">作品集</span>
+            <span class="mx-2 text-slate-700">/</span>
+            <span id="breadcrumb-label" class="text-slate-400"></span>
+        </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto px-6 py-24 text-center space-y-12">
-        <h1 class="text-4xl md:text-6xl font-extrabold text-white">
-            动效完全由 <span class="text-teal-400">GPU 硬件加速</span> 驱动
-        </h1>
-        <p class="text-slate-400 max-w-xl mx-auto">
-            把你的鼠标移到下方的卡片上晃动一下，体验 3D 倾斜反馈。同时注意看你的鼠标指针。
-        </p>
+    <!-- ================================ PAGE: HOME ================================ -->
+    <div id="page-home" class="page active relative z-10">
+        <div class="min-h-screen flex flex-col justify-center max-w-5xl mx-auto px-6 pt-24 pb-16">
 
-        <!-- 3. 交互元素：带 3D 倾斜的便当盒卡片 -->
-        <!-- 注意看这里的 data-tilt 和 data-tilt-max -->
-        <div data-tilt data-tilt-max="15" data-tilt-glare data-tilt-max-glare="0.3" 
-             class="bg-slate-900/50 border border-slate-800 p-12 rounded-3xl h-64 flex flex-col justify-center items-center cursor-pointer shadow-2xl transition-shadow hover:shadow-teal-500/5">
-            <h3 class="text-2xl font-bold text-white mb-2">💻 3D 交互卡片</h3>
-            <p class="text-sm text-teal-400 font-mono">Vanilla-Tilt.js 驱动</p>
+            <!-- Hero -->
+            <div class="mb-20 text-center" id="hero-text">
+                <p class="text-teal-400 text-sm font-mono tracking-widest mb-4 uppercase">Portfolio · 2026</p>
+                <h1 class="text-5xl md:text-7xl font-black text-white leading-[1.05] mb-6">
+                    Design.<br>
+                    <span class="bg-gradient-to-r from-violet-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">Build.</span><br>
+                    Create.
+                </h1>
+                <p class="text-slate-400 text-lg max-w-md mx-auto leading-relaxed">
+                    游戏设计、代码开发与其他创意作品的集合。
+                </p>
+            </div>
+
+            <!-- Category Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5" id="category-cards">
+
+                <!-- Game Design -->
+                <div class="category-card card-game bg-[#0f1220] p-8 flex flex-col gap-5"
+                     onclick="goTo('game-design')" id="cat-game">
+                    <div class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-2xl">
+                        🎮
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-white mb-2">Game Design</h2>
+                        <p class="text-sm text-slate-400 leading-relaxed">游戏概念、关卡设计、系统机制与玩法原型。</p>
+                    </div>
+                    <div class="mt-auto flex items-center gap-2 text-violet-400 text-sm font-medium">
+                        查看作品
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </div>
+                </div>
+
+                <!-- Coding -->
+                <div class="category-card card-code bg-[#0f1220] p-8 flex flex-col gap-5"
+                     onclick="goTo('coding')" id="cat-code">
+                    <div class="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-2xl">
+                        💻
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-white mb-2">Coding</h2>
+                        <p class="text-sm text-slate-400 leading-relaxed">Web 应用、工具开发、交互实验与开源项目。</p>
+                    </div>
+                    <div class="mt-auto flex items-center gap-2 text-teal-400 text-sm font-medium">
+                        查看作品
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </div>
+                </div>
+
+                <!-- Other -->
+                <div class="category-card card-other bg-[#0f1220] p-8 flex flex-col gap-5"
+                     onclick="goTo('other')" id="cat-other">
+                    <div class="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-2xl">
+                        ✦
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-white mb-2">Other Works</h2>
+                        <p class="text-sm text-slate-400 leading-relaxed">插画、影像、实验性创意与跨媒介作品。</p>
+                    </div>
+                    <div class="mt-auto flex items-center gap-2 text-orange-400 text-sm font-medium">
+                        查看作品
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </main>
+    </div>
 
-    <!-- 4. 编写交互逻辑的 JS 代码 -->
+    <!-- ================================ PAGE: GAME DESIGN ================================ -->
+    <div id="page-game-design" class="page relative z-10">
+        <div class="max-w-5xl mx-auto px-6 pt-28 pb-20">
+            <button class="back-btn mb-10" onclick="goHome()">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                返回
+            </button>
+
+            <div class="mb-12">
+                <p class="text-violet-400 text-xs font-mono tracking-widest uppercase mb-3">Category 01</p>
+                <h1 class="text-4xl md:text-5xl font-black text-white mb-4">Game Design</h1>
+                <p class="text-slate-400 max-w-lg">游戏概念设计、关卡原型与系统机制探索。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="game-projects">
+
+                <div class="project-card">
+                    <div class="img-placeholder bg-gradient-to-br from-violet-900/40 to-slate-900">🗺️</div>
+                    <div class="p-5">
+                        <div class="flex gap-2 mb-3">
+                            <span class="tag bg-violet-500/10 text-violet-400 border border-violet-500/20">Level Design</span>
+                            <span class="tag bg-slate-700/50 text-slate-400">Unity</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1">示例项目：迷宫关卡原型</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">程序生成的地下城关卡，探索随机性与可读性的平衡。</p>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="img-placeholder bg-gradient-to-br from-violet-800/30 to-indigo-900/40">⚔️</div>
+                    <div class="p-5">
+                        <div class="flex gap-2 mb-3">
+                            <span class="tag bg-violet-500/10 text-violet-400 border border-violet-500/20">Systems Design</span>
+                            <span class="tag bg-slate-700/50 text-slate-400">GDD</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1">示例项目：战斗系统设计文档</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">回合制战斗的核心循环设计与数值平衡方案。</p>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="img-placeholder bg-gradient-to-br from-purple-900/40 to-pink-900/20">🌍</div>
+                    <div class="p-5">
+                        <div class="flex gap-2 mb-3">
+                            <span class="tag bg-violet-500/10 text-violet-400 border border-violet-500/20">World Building</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1">示例项目：世界观构建</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">以蒸汽朋克为主题的城邦地图与历史线设定。</p>
+                    </div>
+                </div>
+
+                <!-- Add Project Placeholder -->
+                <div class="project-card border-dashed !border-white/5 bg-transparent flex items-center justify-center min-h-[180px] opacity-40 hover:opacity-60 hover:!border-white/10 transition-opacity"
+                     onclick="alert('在这里添加你的项目！')">
+                    <div class="text-center">
+                        <div class="text-3xl mb-2">＋</div>
+                        <p class="text-sm text-slate-500">添加项目</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================ PAGE: CODING ================================ -->
+    <div id="page-coding" class="page relative z-10">
+        <div class="max-w-5xl mx-auto px-6 pt-28 pb-20">
+            <button class="back-btn mb-10" onclick="goHome()">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                返回
+            </button>
+
+            <div class="mb-12">
+                <p class="text-teal-400 text-xs font-mono tracking-widest uppercase mb-3">Category 02</p>
+                <h1 class="text-4xl md:text-5xl font-black text-white mb-4">Coding</h1>
+                <p class="text-slate-400 max-w-lg">Web 应用、工具与交互实验。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <div class="project-card">
+                    <div class="img-placeholder bg-gradient-to-br from-teal-900/40 to-slate-900">🌐</div>
+                    <div class="p-5">
+                        <div class="flex gap-2 mb-3">
+                            <span class="tag bg-teal-500/10 text-teal-400 border border-teal-500/20">Web</span>
+                            <span class="tag bg-slate-700/50 text-slate-400">React</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1">示例项目：作品集网站</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">你现在正在看的这个网站，使用原生 HTML/CSS/JS 构建。</p>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="img-placeholder bg-gradient-to-br from-emerald-900/30 to-teal-900/40">🤖</div>
+                    <div class="p-5">
+                        <div class="flex gap-2 mb-3">
+                            <span class="tag bg-teal-500/10 text-teal-400 border border-teal-500/20">Tool</span>
+                            <span class="tag bg-slate-700/50 text-slate-400">Python</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1">示例项目：自动化脚本</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">批量处理游戏资产的命令行工具，节省重复劳动。</p>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="img-placeholder bg-gradient-to-br from-cyan-900/30 to-blue-900/30">📊</div>
+                    <div class="p-5">
+                        <div class="flex gap-2 mb-3">
+                            <span class="tag bg-teal-500/10 text-teal-400 border border-teal-500/20">Data Viz</span>
+                            <span class="tag bg-slate-700/50 text-slate-400">D3.js</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1">示例项目：游戏数据可视化</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">玩家行为数据的交互式图表展示。</p>
+                    </div>
+                </div>
+
+                <div class="project-card border-dashed !border-white/5 bg-transparent flex items-center justify-center min-h-[180px] opacity-40 hover:opacity-60 hover:!border-white/10 transition-opacity"
+                     onclick="alert('在这里添加你的项目！')">
+                    <div class="text-center">
+                        <div class="text-3xl mb-2">＋</div>
+                        <p class="text-sm text-slate-500">添加项目</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================ PAGE: OTHER ================================ -->
+    <div id="page-other" class="page relative z-10">
+        <div class="max-w-5xl mx-auto px-6 pt-28 pb-20">
+            <button class="back-btn mb-10" onclick="goHome()">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                返回
+            </button>
+
+            <div class="mb-12">
+                <p class="text-orange-400 text-xs font-mono tracking-widest uppercase mb-3">Category 03</p>
+                <h1 class="text-4xl md:text-5xl font-black text-white mb-4">Other Works</h1>
+                <p class="text-slate-400 max-w-lg">插画、影像与跨媒介创意作品。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+                <div class="project-card">
+                    <div class="img-placeholder bg-gradient-to-br from-orange-900/30 to-rose-900/30">🎨</div>
+                    <div class="p-5">
+                        <div class="flex gap-2 mb-3">
+                            <span class="tag bg-orange-500/10 text-orange-400 border border-orange-500/20">Illustration</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1">示例：角色插画</h3>
+                        <p class="text-sm text-slate-500">为游戏项目绘制的概念角色设计。</p>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="img-placeholder bg-gradient-to-br from-amber-900/30 to-orange-900/20">🎬</div>
+                    <div class="p-5">
+                        <div class="flex gap-2 mb-3">
+                            <span class="tag bg-orange-500/10 text-orange-400 border border-orange-500/20">Video</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1">示例：游戏宣传片</h3>
+                        <p class="text-sm text-slate-500">剪辑与后期制作的游戏预告视频。</p>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="img-placeholder bg-gradient-to-br from-pink-900/20 to-orange-900/30">✍️</div>
+                    <div class="p-5">
+                        <div class="flex gap-2 mb-3">
+                            <span class="tag bg-orange-500/10 text-orange-400 border border-orange-500/20">Writing</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mb-1">示例：游戏文案创作</h3>
+                        <p class="text-sm text-slate-500">世界观背景故事与角色对话写作。</p>
+                    </div>
+                </div>
+
+                <div class="project-card border-dashed !border-white/5 bg-transparent flex items-center justify-center min-h-[160px] opacity-40 hover:opacity-60 hover:!border-white/10 transition-opacity"
+                     onclick="alert('在这里添加你的项目！')">
+                    <div class="text-center">
+                        <div class="text-3xl mb-2">＋</div>
+                        <p class="text-sm text-slate-500">添加项目</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <script>
-        // 【交互一：丝滑的鼠标跟随动画】
+        // Cursor
         const cursor = document.getElementById('cursor');
-        
-        // 监听整个网页的鼠标移动事件
-        window.addEventListener('mousemove', (e) => {
-            // 使用 GSAP 让光标平滑地“追赶”鼠标，制造出一种带有物理惯性的丝滑感，完全不卡
-            gsap.to(cursor, {
-                x: e.clientX,
-                y: e.clientY,
-                duration: 0.3, // 延迟追随的时间，数字越大拖尾越长
-                ease: "power2.out"
-            });
+        window.addEventListener('mousemove', e => {
+            gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.25, ease: 'power2.out' });
         });
+        window.addEventListener('mousedown', () => gsap.to(cursor, { scale: 2, duration: 0.1 }));
+        window.addEventListener('mouseup', () => gsap.to(cursor, { scale: 1, duration: 0.2 }));
 
-        // 【交互二：鼠标点下去时的反馈】
-        window.addEventListener('mousedown', () => {
-            gsap.to(cursor, { scale: 1.5, backgroundColor: "rgba(45,212,191,0.4)", duration: 0.1 });
-        });
-        window.addEventListener('mouseup', () => {
-            gsap.to(cursor, { scale: 1, backgroundColor: "transparent", duration: 0.2 });
+        // Routing
+        let current = 'home';
+        const breadcrumb = document.getElementById('nav-breadcrumb');
+        const breadcrumbLabel = document.getElementById('breadcrumb-label');
+
+        const labels = {
+            'game-design': 'Game Design',
+            'coding': 'Coding',
+            'other': 'Other Works'
+        };
+
+        function goTo(page) {
+            const from = document.getElementById('page-' + current);
+            const to = document.getElementById('page-' + page);
+
+            gsap.to(from, { opacity: 0, y: -20, duration: 0.25, ease: 'power2.in', onComplete: () => {
+                from.classList.remove('active');
+                gsap.set(from, { y: 0 });
+
+                to.classList.add('active');
+                gsap.fromTo(to, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
+
+                current = page;
+                breadcrumb.classList.remove('hidden');
+                breadcrumbLabel.textContent = labels[page];
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            }});
+        }
+
+        function goHome() {
+            if (current === 'home') return;
+            const from = document.getElementById('page-' + current);
+            const to = document.getElementById('page-home');
+
+            gsap.to(from, { opacity: 0, y: -20, duration: 0.25, ease: 'power2.in', onComplete: () => {
+                from.classList.remove('active');
+                gsap.set(from, { y: 0 });
+
+                to.classList.add('active');
+                gsap.fromTo(to, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
+
+                current = 'home';
+                breadcrumb.classList.add('hidden');
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            }});
+        }
+
+        // Entrance animation
+        gsap.from('#hero-text', { opacity: 0, y: 40, duration: 0.8, ease: 'power3.out', delay: 0.1 });
+        gsap.from('#category-cards > *', {
+            opacity: 0, y: 30, duration: 0.6, ease: 'power3.out',
+            stagger: 0.1, delay: 0.4
         });
     </script>
 </body>
