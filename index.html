@@ -6,504 +6,893 @@
     <title>Portfolio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
 
-        * { font-family: 'Inter', sans-serif; }
-
-        .custom-cursor {
-            width: 16px;
-            height: 16px;
-            background: rgba(45,212,191,0.6);
+        /* ── cursor ── */
+        #cursor {
+            width: 14px; height: 14px;
+            background: rgba(45,212,191,0.7);
             border: 1.5px solid #2dd4bf;
-            position: fixed;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            transform: translate(-50%, -50%);
+            position: fixed; border-radius: 50%;
+            pointer-events: none; z-index: 9999;
+            transform: translate(-50%,-50%);
             mix-blend-mode: screen;
-            transition: width 0.2s, height 0.2s;
         }
 
-        .page {
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            min-height: 100vh;
+        /* ── home video ── */
+        .home-wrap {
+            width: 100vw; height: 100vh;
+            background: #000;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative;
+        }
+        .home-wrap video {
+            width: 100%; height: 100%;
+            object-fit: contain; display: block;
+        }
+        .banner-link-layer {
+            position: absolute; inset: 0; pointer-events: none;
+        }
+        .banner-nav-link {
+            position: absolute; pointer-events: auto;
+            padding: 8px 16px;
+            border: 1px solid rgba(255,255,255,0.35);
+            border-radius: 8px;
+            background: rgba(8,12,20,0.45);
+            color: rgba(255,255,255,0.9);
+            font-size: clamp(0.7rem,1.3vw,1rem);
+            font-weight: 800; letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            transform: translate(-50%,-50%);
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s, background 0.2s;
+            border: none; outline: none;
+        }
+        .banner-nav-link:hover {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.7);
+            transform: translate(-50%,-50%) scale(1.07);
+        }
+        .banner-nav-link.design { left: 34%; top: 52%; }
+        .banner-nav-link.coding { left: 56.5%; top: 67%; }
+        .banner-nav-link.other  { left: 58.5%; top: 45%; }
+
+        /* ── backdrop dim ── */
+        #backdrop {
+            position: fixed; inset: 0; z-index: 100;
+            background: rgba(0,0,0,0.5);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+        #backdrop.visible { opacity: 1; pointer-events: auto; }
+
+        /* ── category panel (right 2/3) ── */
+        #cat-panel {
+            position: fixed; top: 0; right: 0;
+            width: 67vw; height: 100vh;
+            z-index: 200;
+            background: transparent;
+            display: flex; flex-direction: column;
             opacity: 0;
+            transform: scale(0.97);
             pointer-events: none;
-        }
-        .page.active {
-            opacity: 1;
-            pointer-events: all;
-            position: relative;
-        }
-
-        .category-card {
-            position: relative;
+            transition: opacity 0.4s cubic-bezier(0.16,1,0.3,1), transform 0.4s cubic-bezier(0.16,1,0.3,1);
             overflow: hidden;
-            cursor: pointer;
-            border-radius: 1.5rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .category-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            border-radius: 1.5rem;
+        #cat-panel.open { opacity: 1; transform: scale(1); pointer-events: auto; }
+
+        .panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 28px 36px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            flex-shrink: 0;
         }
-        .category-card:hover::before { opacity: 1; }
-        .category-card:hover { transform: translateY(-6px); }
+        .panel-category-label {
+            font-size: 0.65rem; font-weight: 700;
+            letter-spacing: 0.18em; text-transform: uppercase;
+        }
+        .panel-title {
+            font-size: 2rem; font-weight: 900; color: #fff;
+            line-height: 1;
+        }
+        .close-btn {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0;
+            transition: background 0.2s, color 0.2s;
+        }
+        .close-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
-        .card-game::before { background: radial-gradient(ellipse at top, rgba(139,92,246,0.15) 0%, transparent 70%); }
-        .card-game { border: 1px solid rgba(139,92,246,0.3); box-shadow: 0 0 0 rgba(139,92,246,0); }
-        .card-game:hover { box-shadow: 0 20px 60px rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.6); }
-
-        .card-code::before { background: radial-gradient(ellipse at top, rgba(45,212,191,0.15) 0%, transparent 70%); }
-        .card-code { border: 1px solid rgba(45,212,191,0.3); }
-        .card-code:hover { box-shadow: 0 20px 60px rgba(45,212,191,0.12); border-color: rgba(45,212,191,0.6); }
-
-        .card-other::before { background: radial-gradient(ellipse at top, rgba(251,146,60,0.15) 0%, transparent 70%); }
-        .card-other { border: 1px solid rgba(251,146,60,0.3); }
-        .card-other:hover { box-shadow: 0 20px 60px rgba(251,146,60,0.12); border-color: rgba(251,146,60,0.6); }
-
-        .project-card {
-            background: rgba(15,20,35,0.8);
+        /* ── carousel ── */
+        .carousel-area {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; overflow: hidden;
+            padding: 32px 0;
+        }
+        .carousel-row {
+            display: flex; align-items: center; gap: 0;
+            padding: 0 20px;
+            position: relative;
+        }
+        .carousel-track-wrap {
+            flex: 1; overflow: hidden;
+            position: relative;
+        }
+        .carousel-track {
+            display: flex;
+            align-items: center;
+            transition: transform 0.45s cubic-bezier(0.16,1,0.3,1);
+        }
+        /* Each slide occupies 62% of track — the neighbouring cards peek
+           in on both sides. The slide is a flex box so the card can be
+           capped and centered, leaving comfortable margins all around. */
+        .carousel-slide {
+            min-width: 62%;
+            padding: 0 18px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+        }
+        .project-thumb {
+            width: 100%;
+            max-width: 460px;
+            max-height: 66vh;
+            margin: 0 auto;
+            background: #111827;
             border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 1rem;
+            border-radius: 16px;
             overflow: hidden;
-            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            aspect-ratio: 6 / 5;
+            transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+        }
+        .project-thumb:hover {
+            border-color: rgba(255,255,255,0.18);
+            transform: translateY(-3px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+        }
+        .thumb-img {
+            width: 100%; aspect-ratio: 16/9;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem;
+            background: #0d1117;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .thumb-img video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .thumb-body {
+            padding: 20px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+        .thumb-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .tag {
+            padding: 3px 10px; border-radius: 999px;
+            font-size: 0.68rem; font-weight: 600; letter-spacing: 0.05em;
+        }
+        .thumb-title {
+            font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 6px;
+            display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .thumb-desc {
+            font-size: 0.85rem; color: rgba(255,255,255,0.4); line-height: 1.6;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .thumb-cta {
+            margin-top: auto;
+            padding-top: 18px;
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+        .thumb-cta-btn {
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: 1px solid currentColor;
+            transition: background 0.2s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .thumb-cta-btn:hover { background: rgba(255,255,255,0.07); }
+
+        /* arrow buttons */
+        .arrow-btn {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0;
+            transition: background 0.2s, color 0.2s, transform 0.15s;
+            z-index: 2;
+        }
+        .arrow-btn:hover { background: rgba(255,255,255,0.1); color: #fff; transform: scale(1.08); }
+        .arrow-btn:disabled { opacity: 0.2; cursor: default; transform: none; }
+
+        /* dots */
+        .dots-row {
+            display: flex; gap: 6px; justify-content: center;
+            padding: 16px 0 0;
+            flex-shrink: 0;
+        }
+        .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: rgba(255,255,255,0.18);
+            transition: background 0.25s, width 0.25s;
             cursor: pointer;
         }
-        .project-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(255,255,255,0.15);
-            box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+        .dot.active {
+            width: 20px; border-radius: 3px;
         }
 
-        .tag {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 999px;
-            font-size: 0.7rem;
-            font-weight: 500;
-            letter-spacing: 0.05em;
+        /* ── project detail overlay ── */
+        #detail-overlay {
+            position: fixed; inset: 0; z-index: 500;
+            background: #080c14;
+            opacity: 0; pointer-events: none;
+            overflow-y: auto;
+            transition: opacity 0.3s ease;
+        }
+        #detail-overlay.open { opacity: 1; pointer-events: auto; }
+
+        .detail-inner {
+            max-width: 820px; margin: 0 auto;
+            padding: 80px 40px 60px;
+        }
+        .detail-back {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.82rem; color: rgba(255,255,255,0.45);
+            cursor: pointer; margin-bottom: 36px;
+            background: none; border: none;
+            transition: color 0.2s;
+        }
+        .detail-back:hover { color: #fff; }
+        .detail-img {
+            width: 100%; aspect-ratio: 16/9;
+            border-radius: 16px; overflow: hidden;
+            margin-bottom: 32px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 5rem;
+            background: #0d1117;
+        }
+        .detail-img video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .detail-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .detail-title { font-size: 2.2rem; font-weight: 900; color: #fff; margin-bottom: 12px; line-height: 1.1; }
+
+        /* trailer under the title */
+        .detail-trailer {
+            width: 100%; aspect-ratio: 16/9;
+            border-radius: 16px; overflow: hidden;
+            margin: 8px 0 32px;
+            background: #000;
+        }
+        .detail-trailer video { width: 100%; height: 100%; object-fit: contain; display: block; background:#000; }
+        .detail-trailer iframe { width: 100%; height: 100%; display: block; border: 0; }
+
+        .detail-desc { font-size: 1rem; color: rgba(255,255,255,0.5); line-height: 1.8; }
+
+        /* section heading hierarchy inside the write-up */
+        .d-h2 {
+            display: block;
+            font-size: 1.5rem; font-weight: 900; color: #fff;
+            line-height: 1.2;
+            margin: 44px 0 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .d-h3 {
+            display: block;
+            font-size: 1.12rem; font-weight: 800; color: #e8e8ef;
+            line-height: 1.3;
+            margin: 30px 0 8px;
+        }
+        .detail-desc > p:first-child { margin-top: 0; }
+
+        /* boss encounter looping clip (behaves like a gif — silent, looping) */
+        .detail-gif {
+            width: 100%; border-radius: 12px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: #0d1117;
+            margin: 18px 0 26px;
+            display: block;
+        }
+        .detail-gif video { width: 100%; display: block; }
+
+        /* credits table */
+        .credits-table {
+            width: 100%; border-collapse: collapse;
+            margin: 6px 0 26px;
+            font-size: 0.92rem;
+        }
+        .credits-table th {
+            text-align: left;
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em;
+            text-transform: uppercase; color: rgba(255,255,255,0.35);
+            padding: 0 16px 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+        .credits-table td {
+            padding: 11px 16px 11px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            vertical-align: top;
+        }
+        .credits-table td:first-child { color: #fff; font-weight: 600; white-space: nowrap; }
+        .credits-table td:last-child { color: rgba(255,255,255,0.5); }
+
+        /* level images embedded inside the write-up */
+        .detail-desc figure { margin: 18px 0 26px; }
+        .detail-desc figure img {
+            width: 100%; display: block;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: #0d1117;
+        }
+        .detail-desc figure figcaption {
+            margin-top: 8px;
+            font-size: 0.78rem; letter-spacing: 0.04em;
+            color: rgba(255,255,255,0.35);
+            text-align: center;
+        }
+        .detail-fig-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+            margin: 18px 0 26px;
+        }
+        .detail-fig-grid figure { margin: 0; }
+        @media (max-width: 640px) { .detail-fig-grid { grid-template-columns: 1fr; } }
+        .detail-links { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+        .detail-link {
+            padding: 10px 22px; border-radius: 10px;
+            font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.8);
+            cursor: pointer; text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+        }
+        .detail-link:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+        /* section divider inside detail */
+        .detail-section-title {
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.18em;
+            text-transform: uppercase; color: rgba(255,255,255,0.25);
+            margin: 36px 0 12px;
         }
 
+        /* noise texture */
         .noise {
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
             position: fixed; inset: 0; pointer-events: none; z-index: 1;
         }
 
-        .gradient-orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.04);
-            color: rgba(255,255,255,0.6);
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .back-btn:hover {
-            border-color: rgba(255,255,255,0.2);
-            color: white;
-            background: rgba(255,255,255,0.08);
-        }
-
-        .img-placeholder {
-            width: 100%;
-            aspect-ratio: 16/9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-        }
-
-        .home-video-header {
-            width: 100%;
-            min-height: 100vh;
-            background: #000;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .home-video-stage {
-            --banner-aspect: 1.7778;
-            position: relative;
-            width: 100%;
-            max-width: 177.78vh;
-            aspect-ratio: var(--banner-aspect);
-            max-height: 100vh;
-            background: #000;
-        }
-
-        .home-video-stage video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-            background: #000;
-        }
-
-        .banner-link-layer {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-        }
-
-        .banner-nav-link {
-            position: absolute;
-            pointer-events: auto;
-            padding: 8px 14px;
-            border: 1px solid rgba(255,255,255,0.35);
-            border-radius: 8px;
-            background: rgba(8,12,20,0.42);
-            color: rgba(255,255,255,0.9);
-            font-size: clamp(0.72rem, 1.25vw, 1rem);
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            line-height: 1;
-            text-transform: uppercase;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.75);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-            backdrop-filter: blur(8px);
-            transform: translate(-50%, -50%);
-            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-        }
-
-        .banner-nav-link:hover,
-        .banner-nav-link:focus-visible {
-            background: rgba(255,255,255,0.12);
-            border-color: rgba(255,255,255,0.75);
-            color: #fff;
-            outline: none;
-            transform: translate(-50%, -50%) scale(1.06);
-        }
-
-        .banner-nav-link.design { left: 34%; top: 61%; }
-        .banner-nav-link.coding { left: 56.5%; top: 67%; }
-        .banner-nav-link.other { left: 58.5%; top: 45%; }
-
-        @media (max-width: 640px) {
-            .banner-nav-link {
-                padding: 7px 10px;
-                font-size: 0.68rem;
-                letter-spacing: 0.04em;
-            }
+        @media (max-width: 768px) {
+            #cat-panel { width: 100vw; }
+            .panel-title { font-size: 1.5rem; }
+            .carousel-slide { min-width: 90%; }
+            .detail-inner { padding: 60px 20px 40px; }
+            .detail-title { font-size: 1.6rem; }
         }
     </style>
 </head>
-<body class="bg-[#080c14] text-slate-200 overflow-x-hidden min-h-screen">
+<body class="bg-[#080c14] text-slate-200 overflow-x-hidden">
 
-    <div class="noise"></div>
-    <div class="gradient-orb w-[500px] h-[500px] bg-violet-900/20 top-[-100px] left-[-100px]"></div>
-    <div class="gradient-orb w-[400px] h-[400px] bg-teal-900/15 bottom-[-50px] right-[-50px]"></div>
+<div class="noise"></div>
+<div id="cursor"></div>
 
-    <div class="custom-cursor" id="cursor"></div>
+<!-- ═══════════════════ HOME ═══════════════════ -->
+<div class="home-wrap">
+    <video autoplay muted loop playsinline preload="metadata">
+        <source src="Asset/Video/BannerVideoEdited.mp4" type="video/mp4">
+    </video>
+    <div class="banner-link-layer">
+        <button class="banner-nav-link design" onclick="openPanel('game-design')">Design</button>
+        <button class="banner-nav-link coding" onclick="openPanel('coding')">Coding</button>
+        <button class="banner-nav-link other"  onclick="openPanel('other')">Other</button>
+    </div>
+</div>
 
-    <!-- NAV -->
-    <nav class="hidden fixed top-0 left-0 right-0 z-50 px-6 py-4 justify-between items-center backdrop-blur-xl bg-[#080c14]/60 border-b border-white/5">
-        <button onclick="goHome()" class="text-base font-bold tracking-tight bg-gradient-to-r from-teal-400 to-violet-400 bg-clip-text text-transparent hover:opacity-80 transition-opacity">
-            WALKER.DEV
+<!-- ═══════════════════ BACKDROP ═══════════════════ -->
+<div id="backdrop" onclick="closePanel()"></div>
+
+<!-- ═══════════════════ CATEGORY PANEL ═══════════════════ -->
+<div id="cat-panel">
+    <div class="panel-header">
+        <div>
+            <div class="panel-category-label" id="panel-cat-label"></div>
+            <div class="panel-title" id="panel-title"></div>
+        </div>
+        <button class="close-btn" onclick="closePanel()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
         </button>
-        <div id="nav-breadcrumb" class="text-sm text-slate-500 hidden">
-            <span class="text-slate-600">作品集</span>
-            <span class="mx-2 text-slate-700">/</span>
-            <span id="breadcrumb-label" class="text-slate-400"></span>
-        </div>
-    </nav>
-
-    <!-- ================================ PAGE: HOME ================================ -->
-    <div id="page-home" class="page active relative z-10">
-        <div class="home-video-header">
-            <div class="home-video-stage" id="home-video-stage">
-                <video id="home-banner-video" autoplay muted loop playsinline preload="metadata">
-                    <source src="Asset/Video/BannerVideoEdited.mp4" type="video/mp4">
-                </video>
-                <div class="banner-link-layer" aria-label="Portfolio sections">
-                    <button class="banner-nav-link design" type="button" onclick="goTo('game-design')">Design</button>
-                    <button class="banner-nav-link coding" type="button" onclick="goTo('coding')">Coding</button>
-                    <button class="banner-nav-link other" type="button" onclick="goTo('other')">Other</button>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <!-- ================================ PAGE: GAME DESIGN ================================ -->
-    <div id="page-game-design" class="page relative z-10">
-        <div class="max-w-5xl mx-auto px-6 pt-28 pb-20">
-            <button class="back-btn mb-10" onclick="goHome()">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                返回
+    <div class="carousel-area">
+        <div class="carousel-row">
+            <button class="arrow-btn" id="prev-btn" onclick="slide(-1)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 19l-7-7 7-7"/></svg>
             </button>
-
-            <div class="mb-12">
-                <p class="text-violet-400 text-xs font-mono tracking-widest uppercase mb-3">Category 01</p>
-                <h1 class="text-4xl md:text-5xl font-black text-white mb-4">Game Design</h1>
-                <p class="text-slate-400 max-w-lg">游戏概念设计、关卡原型与系统机制探索。</p>
+            <div class="carousel-track-wrap">
+                <div class="carousel-track" id="carousel-track"></div>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="game-projects">
-
-                <div class="project-card">
-                    <div class="img-placeholder bg-gradient-to-br from-violet-900/40 to-slate-900">🗺️</div>
-                    <div class="p-5">
-                        <div class="flex gap-2 mb-3">
-                            <span class="tag bg-violet-500/10 text-violet-400 border border-violet-500/20">Level Design</span>
-                            <span class="tag bg-slate-700/50 text-slate-400">Unity</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1">示例项目：迷宫关卡原型</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed">程序生成的地下城关卡，探索随机性与可读性的平衡。</p>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="img-placeholder bg-gradient-to-br from-violet-800/30 to-indigo-900/40">⚔️</div>
-                    <div class="p-5">
-                        <div class="flex gap-2 mb-3">
-                            <span class="tag bg-violet-500/10 text-violet-400 border border-violet-500/20">Systems Design</span>
-                            <span class="tag bg-slate-700/50 text-slate-400">GDD</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1">示例项目：战斗系统设计文档</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed">回合制战斗的核心循环设计与数值平衡方案。</p>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="img-placeholder bg-gradient-to-br from-purple-900/40 to-pink-900/20">🌍</div>
-                    <div class="p-5">
-                        <div class="flex gap-2 mb-3">
-                            <span class="tag bg-violet-500/10 text-violet-400 border border-violet-500/20">World Building</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1">示例项目：世界观构建</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed">以蒸汽朋克为主题的城邦地图与历史线设定。</p>
-                    </div>
-                </div>
-
-                <!-- Add Project Placeholder -->
-                <div class="project-card border-dashed !border-white/5 bg-transparent flex items-center justify-center min-h-[180px] opacity-40 hover:opacity-60 hover:!border-white/10 transition-opacity"
-                     onclick="alert('在这里添加你的项目！')">
-                    <div class="text-center">
-                        <div class="text-3xl mb-2">＋</div>
-                        <p class="text-sm text-slate-500">添加项目</p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- ================================ PAGE: CODING ================================ -->
-    <div id="page-coding" class="page relative z-10">
-        <div class="max-w-5xl mx-auto px-6 pt-28 pb-20">
-            <button class="back-btn mb-10" onclick="goHome()">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                返回
+            <button class="arrow-btn" id="next-btn" onclick="slide(1)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg>
             </button>
-
-            <div class="mb-12">
-                <p class="text-teal-400 text-xs font-mono tracking-widest uppercase mb-3">Category 02</p>
-                <h1 class="text-4xl md:text-5xl font-black text-white mb-4">Coding</h1>
-                <p class="text-slate-400 max-w-lg">Web 应用、工具与交互实验。</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                <div class="project-card">
-                    <div class="img-placeholder bg-gradient-to-br from-teal-900/40 to-slate-900">🌐</div>
-                    <div class="p-5">
-                        <div class="flex gap-2 mb-3">
-                            <span class="tag bg-teal-500/10 text-teal-400 border border-teal-500/20">Web</span>
-                            <span class="tag bg-slate-700/50 text-slate-400">React</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1">示例项目：作品集网站</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed">你现在正在看的这个网站，使用原生 HTML/CSS/JS 构建。</p>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="img-placeholder bg-gradient-to-br from-emerald-900/30 to-teal-900/40">🤖</div>
-                    <div class="p-5">
-                        <div class="flex gap-2 mb-3">
-                            <span class="tag bg-teal-500/10 text-teal-400 border border-teal-500/20">Tool</span>
-                            <span class="tag bg-slate-700/50 text-slate-400">Python</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1">示例项目：自动化脚本</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed">批量处理游戏资产的命令行工具，节省重复劳动。</p>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="img-placeholder bg-gradient-to-br from-cyan-900/30 to-blue-900/30">📊</div>
-                    <div class="p-5">
-                        <div class="flex gap-2 mb-3">
-                            <span class="tag bg-teal-500/10 text-teal-400 border border-teal-500/20">Data Viz</span>
-                            <span class="tag bg-slate-700/50 text-slate-400">D3.js</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1">示例项目：游戏数据可视化</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed">玩家行为数据的交互式图表展示。</p>
-                    </div>
-                </div>
-
-                <div class="project-card border-dashed !border-white/5 bg-transparent flex items-center justify-center min-h-[180px] opacity-40 hover:opacity-60 hover:!border-white/10 transition-opacity"
-                     onclick="alert('在这里添加你的项目！')">
-                    <div class="text-center">
-                        <div class="text-3xl mb-2">＋</div>
-                        <p class="text-sm text-slate-500">添加项目</p>
-                    </div>
-                </div>
-
-            </div>
         </div>
+        <div class="dots-row" id="dots-row"></div>
     </div>
+</div>
 
-    <!-- ================================ PAGE: OTHER ================================ -->
-    <div id="page-other" class="page relative z-10">
-        <div class="max-w-5xl mx-auto px-6 pt-28 pb-20">
-            <button class="back-btn mb-10" onclick="goHome()">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                返回
-            </button>
+<!-- ═══════════════════ PROJECT DETAIL ═══════════════════ -->
+<div id="detail-overlay">
+    <div class="detail-inner">
+        <button class="detail-back" id="detail-back-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 19l-7-7 7-7"/></svg>
+            返回
+        </button>
 
-            <div class="mb-12">
-                <p class="text-orange-400 text-xs font-mono tracking-widest uppercase mb-3">Category 03</p>
-                <h1 class="text-4xl md:text-5xl font-black text-white mb-4">Other Works</h1>
-                <p class="text-slate-400 max-w-lg">插画、影像与跨媒介创意作品。</p>
-            </div>
+        <div class="detail-img" id="detail-img"></div>
+        <div class="detail-tags" id="detail-tags"></div>
+        <div class="detail-title" id="detail-title"></div>
+        <div class="detail-trailer" id="detail-trailer" style="display:none;"></div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="detail-desc" id="detail-desc"></div>
 
-                <div class="project-card">
-                    <div class="img-placeholder bg-gradient-to-br from-orange-900/30 to-rose-900/30">🎨</div>
-                    <div class="p-5">
-                        <div class="flex gap-2 mb-3">
-                            <span class="tag bg-orange-500/10 text-orange-400 border border-orange-500/20">Illustration</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1">示例：角色插画</h3>
-                        <p class="text-sm text-slate-500">为游戏项目绘制的概念角色设计。</p>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="img-placeholder bg-gradient-to-br from-amber-900/30 to-orange-900/20">🎬</div>
-                    <div class="p-5">
-                        <div class="flex gap-2 mb-3">
-                            <span class="tag bg-orange-500/10 text-orange-400 border border-orange-500/20">Video</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1">示例：游戏宣传片</h3>
-                        <p class="text-sm text-slate-500">剪辑与后期制作的游戏预告视频。</p>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="img-placeholder bg-gradient-to-br from-pink-900/20 to-orange-900/30">✍️</div>
-                    <div class="p-5">
-                        <div class="flex gap-2 mb-3">
-                            <span class="tag bg-orange-500/10 text-orange-400 border border-orange-500/20">Writing</span>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1">示例：游戏文案创作</h3>
-                        <p class="text-sm text-slate-500">世界观背景故事与角色对话写作。</p>
-                    </div>
-                </div>
-
-                <div class="project-card border-dashed !border-white/5 bg-transparent flex items-center justify-center min-h-[160px] opacity-40 hover:opacity-60 hover:!border-white/10 transition-opacity"
-                     onclick="alert('在这里添加你的项目！')">
-                    <div class="text-center">
-                        <div class="text-3xl mb-2">＋</div>
-                        <p class="text-sm text-slate-500">添加项目</p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+        <div class="detail-section-title" id="detail-links-label">Links</div>
+        <div class="detail-links" id="detail-links"></div>
     </div>
+</div>
 
-    <script>
-        // Cursor
-        const cursor = document.getElementById('cursor');
-        window.addEventListener('mousemove', e => {
-            gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.25, ease: 'power2.out' });
-        });
-        window.addEventListener('mousedown', () => gsap.to(cursor, { scale: 2, duration: 0.1 }));
-        window.addEventListener('mouseup', () => gsap.to(cursor, { scale: 1, duration: 0.2 }));
+<script>
+/* ── Data ── */
+const CATEGORIES = {
+    'game-design': {
+        num: '01',
+        label: 'Game Design',
+        accent: '#a78bfa',
+        tagStyle: 'background:rgba(139,92,246,0.12);color:#a78bfa;border:1px solid rgba(139,92,246,0.25)',
+        projects: [
+            {
+                emoji: '⛏️',
+                imgBg: 'linear-gradient(135deg,#1f1030 0%,#0d0f1a 100%)',
+                cover: 'Asset/Video/CC-cover.mp4',
+                trailer: 'Asset/Video/Trailer_20260405.mp4',
+                tags: ['VR', 'Level Design', 'Enemy Design', 'Unity'],
+                title: 'Crossworld Chronicles',
+                desc: 'An asymmetric co-op VR dungeon crawler — one player fights inside the dungeon while the other commands from above.',
+                fullDesc:
+`<strong class="d-h2">Overview</strong>
+Game Designer · Team of 8 · 3 months · PC VR · Unity · Client: Coal Car Studio
 
-        // Routing
-        let current = 'home';
-        const breadcrumb = document.getElementById('nav-breadcrumb');
-        const breadcrumbLabel = document.getElementById('breadcrumb-label');
+I was the only game designer on the team. I led level design and enemy design, and contributed to systems design within the framework set by our client. The general direction came from the client's brief, but turning an abstract requirement like "two-player asymmetric co-op" into a game people can actually play means answering a long list of concrete questions — why would these two roles ever need each other, how should the map guide players through it, how fast should enemies move and where should they come from. I designed the structure of all three levels and the enemy behavior model, and every combat and resource value was locked in only after several rounds of playtesting.
 
-        const labels = {
-            'game-design': 'Game Design',
-            'coding': 'Coding',
-            'other': 'Other Works'
-        };
+<strong class="d-h2">The Design Challenge</strong>
+How do you make two players with completely different gameplay actually need each other? Get it wrong, and you end up with the classic failure of asymmetric design: two people in the same room playing two games that have nothing to do with each other.
 
-        const homeVideo = document.getElementById('home-banner-video');
-        const homeVideoStage = document.getElementById('home-video-stage');
+The two roles experience the game in completely different ways — the Explorer down inside the dungeon, the Strategist looking down from above — both while exploring the level and in the middle of combat.
 
-        homeVideo.addEventListener('loadedmetadata', () => {
-            if (homeVideo.videoWidth && homeVideo.videoHeight) {
-                const aspect = homeVideo.videoWidth / homeVideo.videoHeight;
-                homeVideoStage.style.setProperty('--banner-aspect', aspect);
-                homeVideoStage.style.maxWidth = `${aspect * 100}vh`;
+<div class="detail-fig-grid"><figure><img src="Asset/Picture/CC/User%20Flow/explorer-in%20level.png" alt="Explorer in level"><figcaption>Explorer · In Level</figcaption></figure><figure><img src="Asset/Picture/CC/User%20Flow/strategist-in%20level.png" alt="Strategist in level"><figcaption>Strategist · In Level</figcaption></figure><figure><img src="Asset/Picture/CC/User%20Flow/explorer-in%20combat.png" alt="Explorer in combat"><figcaption>Explorer · In Combat</figcaption></figure><figure><img src="Asset/Picture/CC/User%20Flow/strategist-in%20combat.png" alt="Strategist in combat"><figcaption>Strategist · In Combat</figcaption></figure></div>
+
+Our first concept had players alternating between puzzle-solving and combat — while one solved a puzzle, the other fought to protect them, FPS-style versus tower-defense-style. The client made it clear they didn't want puzzles, and the concept was cut. The problem surfaced immediately in our first playtest without it: the Explorer could clear an entire encounter alone, leaving the Strategist with nothing to do. Cooperation simply did not exist in the numbers.
+
+<strong class="d-h3">The fix: writing dependency into the values</strong>
+We reduced the Explorer's damage so he could no longer beat enemies alone, and strengthened the towers so the Strategist's decisions actually shaped the fight. To balance that, we throttled his resources: passive mana regen is only 0.5/sec, and a tower costs 5 mana — roughly ten seconds per tower alone. The Explorer, meanwhile, can destroy a coal cart for an instant +5 mana, effectively handing his teammate a tower out of thin air. Cooperation stopped being encouraged and became unavoidable.
+
+<figure><img src="Asset/Picture/CC/User%20Flow/coop%20loop.png" alt="Co-op dependency loop"><figcaption>The co-op dependency loop</figcaption></figure>
+
+<strong class="d-h3">Designing VR for the first time</strong>
+This was the team's first VR project. We cut all melee weapons (no physical feedback makes swinging feel terrible), kept enemies primarily ranged, removed jumping and added a movement vignette against motion sickness, and used ramps instead of stairs with open sightlines to keep the space readable in a headset.
+
+<div class="detail-fig-grid"><figure><img src="Asset/Picture/CC/Enemy/Enemy-1.png" alt="Enemy design 1"><figcaption>Enemy · Ranged behaviour</figcaption></figure><figure><img src="Asset/Picture/CC/Enemy/Enemy-2.png" alt="Enemy design 2"><figcaption>Enemy · Approach &amp; timing</figcaption></figure></div>
+
+<strong class="d-h2">Level Design</strong>
+I was designing space, not layout. Three levels, each escalating from the last.
+
+<strong class="d-h3">Level 1 — Learning the roles</strong>
+Clear sightlines, resources next to spawn, enemies from a single direction. There is almost no real challenge — the only thing players need to figure out is who they are and how resources flow between them.
+
+<div class="detail-fig-grid"><figure><img src="Asset/Picture/CC/Level/Level%201-1.png" alt="Level 1 overview 1"></figure><figure><img src="Asset/Picture/CC/Level/Level%201-2.png" alt="Level 1 overview 2"></figure></div>
+
+<figure><img src="Asset/Picture/CC/Level/Level%201-Design.png" alt="Level 1 design"><figcaption>Level 1 · Design</figcaption></figure>
+
+<figure><img src="Asset/Picture/CC/Level/Level%201-Combat%20Design.png" alt="Level 1 combat design"><figcaption>Level 1 · Combat Design</figcaption></figure>
+
+<strong class="d-h3">Level 2 — Elevation and pressure from two sides</strong>
+The map expands, elevation is introduced, resources scatter further out, and enemies enter through two adjacent entrances. Players handle two things at once, and scattered resources start pulling the two players apart.
+
+<figure><img src="Asset/Picture/CC/Level/Level%202-1.png" alt="Level 2 overview"></figure>
+
+<figure><img src="Asset/Picture/CC/Level/Level%202-Design.png" alt="Level 2 design"><figcaption>Level 2 · Design</figcaption></figure>
+
+<figure><img src="Asset/Picture/CC/Level/Level%202-Combat%20Design.png" alt="Level 2 combat design"><figcaption>Level 2 · Combat Design</figcaption></figure>
+
+<strong class="d-h3">Level 3 — Coordination with the Strategist at the center</strong>
+The map opens up, the two entrances push to opposite corners, and enemies take a semicircular route in. The Explorer can no longer cover both entrances alone — he has to rely on the Strategist's overhead view and the Strategist has to actually speak up. What this level tests isn't mechanical skill, it's communication.
+
+<div class="detail-fig-grid"><figure><img src="Asset/Picture/CC/Level/Level%203-1.png" alt="Level 3 overview 1"></figure><figure><img src="Asset/Picture/CC/Level/Level%203-2.png" alt="Level 3 overview 2"></figure></div>
+
+<figure><img src="Asset/Picture/CC/Level/Level%203-Design.png" alt="Level 3 design"><figcaption>Level 3 · Design</figcaption></figure>
+
+<figure><img src="Asset/Picture/CC/Level/Level%203-Combat%20Design.png" alt="Level 3 combat design"><figcaption>Level 3 · Combat Design</figcaption></figure>
+
+What changes across Level 2 and 3 isn't entrance count — it's the distance between them. That single change forces the Explorer to give up handling everything himself and start taking direction. Cooperation is no longer a strategic option; it's the only way through.
+
+<strong class="d-h3">The level we threw away</strong>
+The original Level 3 had the most aggressive elevation in the project — multiple platforms, dramatic drops, a genuinely striking 3D battlefield on paper. Playtesting gave a clear answer: it doesn't work. Players fell into pits they couldn't climb out of, footing was unreliable, and sharp elevation changes made people dizzy in the headset. We had assumed players would be as VR-tolerant as we were. We threw the level out and moved complexity from the vertical axis to the horizontal one — challenge from distance rather than height. We lost the more visually ambitious level and got, in return, a level players are actually willing to finish.
+
+<figure><img src="Asset/Picture/CC/Level/old%20level.png" alt="The discarded high-elevation Level 3"><figcaption>The discarded Level 3 — the high-elevation version we cut</figcaption></figure>
+
+<strong class="d-h2">Designed Beyond Scope</strong>
+Systems designed but cut for time within a hard 3-month ceiling. The alternating puzzle/combat concept was rejected by the client, but its design goal — give each side something they must be doing — carried through into the resource-dependency solution.
+
+<strong class="d-h3">Room Rotation</strong>
+The Strategist could physically grab and rotate an entire room while the Explorer simply perceived the environment changing. This is where the map arrangement itself becomes a tool the Strategist wields to reshape the battlefield.
+
+<div class="detail-fig-grid"><figure><img src="Asset/Picture/CC/Extend/Map%20Arrangement-1.jpg" alt="Map arrangement 1"><figcaption>Map Arrangement · 1</figcaption></figure><figure><img src="Asset/Picture/CC/Extend/Map%20Arrangement-2.jpg" alt="Map arrangement 2"><figcaption>Map Arrangement · 2</figcaption></figure></div>
+
+<figure><img src="Asset/Picture/CC/Extend/Map%20Arrangement-3.jpg" alt="Map arrangement 3"><figcaption>Map Arrangement · 3</figcaption></figure>
+
+<strong class="d-h3">Fog of War</strong>
+The Strategist's "god's-eye view" would only reveal what the Explorer had physically walked — every inch of visible battlefield earned by exploration.
+
+<div class="detail-fig-grid"><figure><img src="Asset/Picture/CC/Extend/Fog%20of%20War-1.jpg" alt="Fog of war 1"><figcaption>Fog of War · 1</figcaption></figure><figure><img src="Asset/Picture/CC/Extend/Fog%20of%20War-2.jpg" alt="Fog of war 2"><figcaption>Fog of War · 2</figcaption></figure></div>
+
+<strong class="d-h3">Boss Encounter</strong>
+A two-phase fight with a stun/regen risk-reward loop. Room Rotation, Fog of War and the Boss all needed cross-player state sync and more iteration time than three months allowed.
+
+<div class="detail-gif"><video src="Asset/Video/BossAttackAlternative.mp4" autoplay muted loop playsinline></video></div>
+
+<strong class="d-h2">Reflection</strong>
+I'm proudest of the Level 3 rebuild — moving complexity from vertical to horizontal was the moment I understood that level design isn't about designing space, it's about designing what players will do. I'd have pushed harder, earlier, on what the client actually wanted: when a client says their ideas don't matter, that's not the end of the conversation. On a client project, silence doesn't mean there are no requirements.
+
+<strong class="d-h2">Credits — Team LUVR</strong>
+<table class="credits-table"><thead><tr><th>Name</th><th>Role</th></tr></thead><tbody><tr><td>Carol Zhao</td><td>Game Designer</td></tr><tr><td>Ella Xue</td><td>Project Manager / UI-UX</td></tr><tr><td>Peta Huang</td><td>Project Manager / Narrative Designer</td></tr><tr><td>Han Zhang</td><td>Developer</td></tr><tr><td>Hedie Mahmoudian</td><td>Developer</td></tr><tr><td>Jenna Crowell</td><td>Jr. Developer</td></tr><tr><td>Arya Shu</td><td>3D / 2D Artist</td></tr><tr><td>Yutong Ding</td><td>3D Artist</td></tr></tbody></table>
+
+Unity · PC VR · 3 months · Client: Coal Car Studio · Sound assets used under CC 3.0 / 4.0 licenses`,
+                links: []
+            },
+            {
+                emoji: '🗺️',
+                imgBg: 'linear-gradient(135deg,#1e1035 0%,#0d0f1a 100%)',
+                tags: ['Level Design', 'Unity'],
+                title: '迷宫关卡原型',
+                desc: '程序生成的地下城关卡，探索随机性与可读性的平衡。',
+                fullDesc: `这是一个基于 Unity 的程序化关卡生成系统，采用 BSP（二叉空间分割）算法生成房间与走廊，并在此基础上加入了可读性优化规则——保证玩家视野内永远有明确的路径指引。\n\n核心挑战在于如何让随机生成的结果仍然"感觉像是人工设计的"。项目中实现了基于热力图的难度分布分析工具，用于评估敌人摆放与物资密度。`,
+                links: [{ label: '查看 Demo', href: '#' }, { label: 'GitHub', href: '#' }]
+            },
+            {
+                emoji: '⚔️',
+                imgBg: 'linear-gradient(135deg,#1a1035 0%,#0d1020 100%)',
+                tags: ['Systems Design', 'GDD'],
+                title: '战斗系统设计文档',
+                desc: '回合制战斗的核心循环设计与数值平衡方案。',
+                fullDesc: `完整的游戏设计文档（GDD），涵盖一套回合制战斗系统的核心循环、资源经济、技能树结构与数值平衡框架。\n\n采用 Excel 驱动的数值模拟工具验证了不同职业组合在 50 场模拟战斗中的胜率分布，最终将各职业胜率差控制在 ±8% 以内。`,
+                links: [{ label: '阅读 GDD', href: '#' }]
+            },
+            {
+                emoji: '🌍',
+                imgBg: 'linear-gradient(135deg,#1a0a2e 0%,#0d1020 100%)',
+                tags: ['World Building', 'Narrative'],
+                title: '蒸汽朋克世界观构建',
+                desc: '以蒸汽朋克为主题的城邦地图与历史线设定。',
+                fullDesc: `为一款策略游戏构建的完整世界观，包含 12 个城邦的历史、地理与政治关系图谱，以及一套统一的"蒸汽魔法"能源经济体系作为冲突驱动核心。\n\n附带手绘风格世界地图（Illustrator 制作）与 6000 字的世界背景文档。`,
+                links: [{ label: '查看地图', href: '#' }, { label: '阅读设定', href: '#' }]
             }
-        });
+        ]
+    },
+    'coding': {
+        num: '02',
+        label: 'Coding',
+        accent: '#2dd4bf',
+        tagStyle: 'background:rgba(45,212,191,0.1);color:#2dd4bf;border:1px solid rgba(45,212,191,0.2)',
+        projects: [
+            {
+                emoji: '🌐',
+                imgBg: 'linear-gradient(135deg,#051a18 0%,#0d1a1a 100%)',
+                tags: ['Web', 'HTML/CSS/JS'],
+                title: '作品集网站',
+                desc: '你现在正在看的这个网站，原生 HTML/CSS/JS 构建。',
+                fullDesc: `从零搭建的个人作品集网站，完全使用原生 Web 技术实现（无框架）。\n\n交互亮点：GSAP 动画驱动的视频首页、滑动面板式类别浏览、项目详情全屏展示，以及自定义鼠标跟随光标。全站无构建工具，可直接部署为静态文件。`,
+                links: [{ label: 'GitHub', href: '#' }]
+            },
+            {
+                emoji: '🤖',
+                imgBg: 'linear-gradient(135deg,#051a12 0%,#0d1a14 100%)',
+                tags: ['Tool', 'Python'],
+                title: '游戏资产自动化脚本',
+                desc: '批量处理游戏资产的命令行工具。',
+                fullDesc: `Python CLI 工具，用于批量压缩、重命名、格式转换游戏美术资产（PNG/PSD/OGG），并生成 Unity 可直接导入的 .meta 配置文件。\n\n在团队项目中节省了约 70% 的资产整理时间，支持通过 YAML 配置文件自定义处理流水线。`,
+                links: [{ label: 'GitHub', href: '#' }]
+            },
+            {
+                emoji: '📊',
+                imgBg: 'linear-gradient(135deg,#040d1a 0%,#051220 100%)',
+                tags: ['Data Viz', 'D3.js'],
+                title: '游戏数据可视化面板',
+                desc: '玩家行为数据的交互式图表展示。',
+                fullDesc: `基于 D3.js 构建的数据可视化面板，接入游戏后端 API 实时展示玩家留存率、关卡通过率热力图与道具使用频率分布。\n\n提供时间轴筛选与平台对比功能，帮助设计团队快速定位数值问题关卡。`,
+                links: [{ label: '查看 Demo', href: '#' }, { label: 'GitHub', href: '#' }]
+            }
+        ]
+    },
+    'other': {
+        num: '03',
+        label: 'Other Works',
+        accent: '#fb923c',
+        tagStyle: 'background:rgba(251,146,60,0.1);color:#fb923c;border:1px solid rgba(251,146,60,0.2)',
+        projects: [
+            {
+                emoji: '🎨',
+                imgBg: 'linear-gradient(135deg,#1a0d05 0%,#1a0a0a 100%)',
+                tags: ['Illustration', 'Procreate'],
+                title: '概念角色插画系列',
+                desc: '为游戏项目绘制的概念角色设计。',
+                fullDesc: `为蒸汽朋克世界观项目绘制的 8 张角色概念图，使用 Procreate 完成线稿与上色，配色方案参考维多利亚时代铜版印刷风格。\n\n每张角色图附有设计说明，阐释服装细节与世界观设定的关联逻辑。`,
+                links: [{ label: '查看图集', href: '#' }]
+            },
+            {
+                emoji: '🎬',
+                imgBg: 'linear-gradient(135deg,#1a1005 0%,#140d00 100%)',
+                tags: ['Video', 'Premiere'],
+                title: '游戏宣传预告片',
+                desc: '剪辑与后期制作的游戏预告视频。',
+                fullDesc: `90 秒游戏宣传片，使用 Adobe Premiere Pro 剪辑，After Effects 制作片头动态字幕与转场特效。\n\n声音设计部分自行录制并混音，最终输出 4K/60fps 版本用于 Steam 页面与社交媒体投放。`,
+                links: [{ label: '观看视频', href: '#' }]
+            },
+            {
+                emoji: '✍️',
+                imgBg: 'linear-gradient(135deg,#1a0510 0%,#120009 100%)',
+                tags: ['Writing', 'Narrative'],
+                title: '游戏文案与对话写作',
+                desc: '世界观背景故事与角色对话写作。',
+                fullDesc: `为角色扮演游戏撰写的 12000 字剧本，涵盖主线故事三章、6 名主要角色的背景故事以及 200+ 条动态对话台词（根据玩家选择分支）。\n\n对话系统采用 Ink 脚本语言实现，集成至 Unity 项目。`,
+                links: [{ label: '阅读摘录', href: '#' }]
+            }
+        ]
+    }
+};
 
-        function goTo(page) {
-            const from = document.getElementById('page-' + current);
-            const to = document.getElementById('page-' + page);
+/* ── State ── */
+let activeCategory = null;
+let currentIndex = 0;
+const panel    = document.getElementById('cat-panel');
+const backdrop = document.getElementById('backdrop');
+const track    = document.getElementById('carousel-track');
+const dotsRow  = document.getElementById('dots-row');
+const prevBtn  = document.getElementById('prev-btn');
+const nextBtn  = document.getElementById('next-btn');
+const detail   = document.getElementById('detail-overlay');
 
-            gsap.to(from, { opacity: 0, y: -20, duration: 0.25, ease: 'power2.in', onComplete: () => {
-                from.classList.remove('active');
-                gsap.set(from, { y: 0 });
+/* ── Cursor ── */
+const cursor = document.getElementById('cursor');
+window.addEventListener('mousemove', e => {
+    gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.22, ease: 'power2.out' });
+});
+window.addEventListener('mousedown', () => gsap.to(cursor, { scale: 2.2, duration: 0.1 }));
+window.addEventListener('mouseup',   () => gsap.to(cursor, { scale: 1,   duration: 0.18 }));
 
-                to.classList.add('active');
-                gsap.fromTo(to, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
+/* ── Open panel ── */
+function openPanel(catKey) {
+    const cat = CATEGORIES[catKey];
+    activeCategory = catKey;
+    currentIndex = 0;
 
-                current = page;
-                breadcrumb.classList.remove('hidden');
-                breadcrumbLabel.textContent = labels[page];
-                window.scrollTo({ top: 0, behavior: 'instant' });
-            }});
+    // Always reset the carousel back to the first project. Disable the
+    // slide transition for the reset so it doesn't visibly rewind.
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0)';
+    requestAnimationFrame(() => { track.style.transition = ''; });
+
+    // Header
+    const label = document.getElementById('panel-cat-label');
+    const title = document.getElementById('panel-title');
+    label.textContent = 'Category ' + cat.num;
+    label.style.color = cat.accent;
+    title.textContent = cat.label;
+
+    // Build slides
+    track.innerHTML = '';
+    dotsRow.innerHTML = '';
+    cat.projects.forEach((p, i) => {
+        const slide = document.createElement('div');
+        slide.className = 'carousel-slide';
+        slide.innerHTML = `
+            <div class="project-thumb" onclick="openDetail('${catKey}',${i})">
+                <div class="thumb-img" style="background:${p.cover ? '#0d1117' : p.imgBg}">${p.cover ? `<video src="${p.cover}" autoplay muted loop playsinline data-slow></video>` : p.emoji}</div>
+                <div class="thumb-body">
+                    <div class="thumb-tags">
+                        ${p.tags.map(t => `<span class="tag" style="${cat.tagStyle}">${t}</span>`).join('')}
+                    </div>
+                    <div class="thumb-title">${p.title}</div>
+                    <div class="thumb-desc">${p.desc}</div>
+                    <div class="thumb-cta">
+                      <span class="thumb-cta-btn" style="color:${cat.accent}">
+                        查看详情
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                      </span>
+                    </div>
+                </div>
+            </div>`;
+        track.appendChild(slide);
+
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (i === 0 ? ' active' : '');
+        dot.style.background = i === 0 ? cat.accent : '';
+        dot.onclick = () => goToSlide(i);
+        dotsRow.appendChild(dot);
+    });
+
+    updateArrows();
+    slowCoverVideos();
+    panel.classList.add('open');
+    backdrop.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+}
+
+/* Cover videos play at normal (native) speed. */
+const COVER_SPEED = 1;
+function slowCoverVideos() {
+    document.querySelectorAll('video[data-slow]').forEach(v => {
+        v.playbackRate = COVER_SPEED;
+        if (!v.dataset.slowBound) {
+            v.dataset.slowBound = '1';
+            v.addEventListener('loadedmetadata', () => { v.playbackRate = COVER_SPEED; });
+            v.addEventListener('play', () => { v.playbackRate = COVER_SPEED; });
         }
+    });
+}
 
-        function goHome() {
-            if (current === 'home') return;
-            const from = document.getElementById('page-' + current);
-            const to = document.getElementById('page-home');
+/* ── Close panel ── */
+function closePanel() {
+    panel.classList.remove('open');
+    backdrop.classList.remove('visible');
+    document.body.style.overflow = '';
+}
 
-            gsap.to(from, { opacity: 0, y: -20, duration: 0.25, ease: 'power2.in', onComplete: () => {
-                from.classList.remove('active');
-                gsap.set(from, { y: 0 });
+/* ── Slide ── */
+function slide(dir) {
+    const cat = CATEGORIES[activeCategory];
+    const newIdx = currentIndex + dir;
+    if (newIdx < 0 || newIdx >= cat.projects.length) return;
+    goToSlide(newIdx);
+}
 
-                to.classList.add('active');
-                gsap.fromTo(to, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' });
+function goToSlide(idx) {
+    const cat = CATEGORIES[activeCategory];
+    currentIndex = idx;
+    track.style.transform = `translateX(-${idx * 62}%)`;
 
-                current = 'home';
-                breadcrumb.classList.add('hidden');
-                window.scrollTo({ top: 0, behavior: 'instant' });
-            }});
+    // update dots
+    const dots = dotsRow.querySelectorAll('.dot');
+    dots.forEach((d, i) => {
+        d.classList.toggle('active', i === idx);
+        d.style.background = i === idx ? cat.accent : 'rgba(255,255,255,0.18)';
+        d.style.width = i === idx ? '20px' : '6px';
+    });
+    updateArrows();
+}
+
+function updateArrows() {
+    const len = CATEGORIES[activeCategory]?.projects.length ?? 0;
+    prevBtn.disabled = currentIndex === 0;
+    nextBtn.disabled = currentIndex === len - 1;
+}
+
+/* ── Open detail ── */
+function openDetail(catKey, idx) {
+    const cat = CATEGORIES[catKey];
+    const p = cat.projects[idx];
+
+    // top cover — video if provided, otherwise emoji on a gradient
+    const detailImg = document.getElementById('detail-img');
+    if (p.cover) {
+        detailImg.style.background = '#0d1117';
+        detailImg.innerHTML = `<video src="${p.cover}" autoplay muted loop playsinline data-slow></video>`;
+        slowCoverVideos();
+    } else {
+        detailImg.style.background = p.imgBg;
+        detailImg.textContent = p.emoji;
+    }
+
+    document.getElementById('detail-title').textContent = p.title;
+
+    // trailer directly under the title
+    const trailerEl = document.getElementById('detail-trailer');
+    if (p.trailer) {
+        trailerEl.style.display = '';
+        const ytId = youtubeId(p.trailer);
+        if (ytId) {
+            trailerEl.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytId}" title="Trailer" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+        } else {
+            trailerEl.innerHTML = `<video src="${p.trailer}" controls playsinline preload="metadata"></video>`;
         }
+    } else {
+        trailerEl.style.display = 'none';
+        trailerEl.innerHTML = '';
+    }
 
-        // Entrance animation
-        gsap.from('.home-video-stage', { opacity: 0, duration: 0.8, ease: 'power2.out', delay: 0.1 });
-    </script>
+    // description — split on blank lines; pass block-level HTML through
+    // untouched so embedded figures/headers aren't broken by <br> insertion.
+    document.getElementById('detail-desc').innerHTML = p.fullDesc.trim()
+        .split(/\n\n+/)
+        .map(block => {
+            const t = block.trim();
+            if (t.startsWith('<')) return t;
+            return `<p style="margin:0 0 14px;">${t.replace(/\n/g, '<br>')}</p>`;
+        })
+        .join('');
+
+    // tags
+    const tagsEl = document.getElementById('detail-tags');
+    tagsEl.innerHTML = p.tags.map(t => `<span class="tag" style="${cat.tagStyle}">${t}</span>`).join('');
+
+    // links
+    const linksEl = document.getElementById('detail-links');
+    const linksLabel = document.getElementById('detail-links-label');
+    if (p.links && p.links.length) {
+        linksLabel.style.display = '';
+        linksEl.innerHTML = p.links.map(l =>
+            `<a class="detail-link" href="${l.href}">${l.label}</a>`
+        ).join('');
+    } else {
+        linksLabel.style.display = 'none';
+        linksEl.innerHTML = '';
+    }
+
+    // back button action
+    document.getElementById('detail-back-btn').onclick = closeDetail;
+
+    detail.scrollTop = 0;
+    detail.classList.add('open');
+}
+
+function closeDetail() {
+    detail.classList.remove('open');
+    // stop the trailer so its audio doesn't keep playing behind the panel
+    const tv = document.querySelector('#detail-trailer video');
+    if (tv) tv.pause();
+    // reload the YouTube iframe to halt playback
+    const yt = document.querySelector('#detail-trailer iframe');
+    if (yt) yt.src = yt.src;
+}
+
+/* Extract a YouTube video id from youtu.be / youtube.com URLs. */
+function youtubeId(url) {
+    const m = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+    return m ? m[1] : null;
+}
+
+/* ── Keyboard ── */
+window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        if (detail.classList.contains('open')) closeDetail();
+        else closePanel();
+    }
+    if (panel.classList.contains('open') && !detail.classList.contains('open')) {
+        if (e.key === 'ArrowLeft')  slide(-1);
+        if (e.key === 'ArrowRight') slide(1);
+    }
+});
+
+/* ── Touch swipe on carousel ── */
+let touchStartX = 0;
+track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+track.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) slide(dx < 0 ? 1 : -1);
+});
+</script>
 </body>
 </html>
